@@ -1,0 +1,115 @@
+import streamlit as st
+import time
+import pandas as pd
+import random
+
+# إعدادات الصفحة لتكون بعرض الشاشة ومظهر احترافي
+st.set_page_config(page_title="منصة الرصد الذكي - HSE AI Agent", layout="wide", initial_sidebar_state="expanded")
+
+# تطبيق مظهر التنسيق العربي والدعم اللغوي
+st.markdown("""
+    <style>
+    .reportview-container { flex-direction: row-reverse; }
+    .sidebar .sidebar-content { position:分; right:0; }
+    h1, h2, h3, p, div { text-align: right; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    div.stButton > button:first-child { background-color: #FF4B4B; color:white; width: 100%; font-size: 18px; font-weight: bold; }
+    </style>
+""", unsafe_allow_html=True)
+
+# العنوان الرئيسي
+st.title("🏗️ منظومة الرصد الآلي لامتثال السلامة وتفادي الغرامات")
+st.subheader("لوحة التحكم القيادية للمواقع الإنشائية - قطاع الشركات B2B")
+st.write("---")
+
+# القائمة الجانبية (Sidebar)
+st.sidebar.header("⚙️ إعدادات المحاكاة والديمو")
+project = st.sidebar.selectbox("اختر الموقع الإنشائي للتفتيش:", ["مشروع برج العاصمة - الرياض", "مشروع تطوير الواجهة البحرية - جدة", "موقع أعمال شركة الكهرباء - مكة"])
+camera_source = st.sidebar.radio("مصدر البث المباشر:", ["🎥 بث كاميرات الموقع الثابتة CCTV", "📱 بث جوال المشرف الميداني (لايف)"])
+inspection_type = st.sidebar.multiselect("فئات الرصد النشطة للـ AI:", ["عدم ارتداء الخوذة", "عدم ارتداء السترة العاكسة", "التدخين في موقع خطر", "انسداد مخارج الطوارئ"], default=["عدم ارتداء الخوذة", "عدم ارتداء السترة العاكسة"])
+
+# قسم مؤشرات الأداء (KPIs)
+col1, col2, col3, col4 = st.columns(4)
+
+# استخدام session_state للحفاظ على البيانات أثناء الضغط والتفاعل
+if 'compliance' not in st.state: st.state.compliance = 74
+if 'tickets_count' not in st.state: st.state.tickets_count = 3
+if 'ticket_status' not in st.state: st.state.ticket_status = "🔴 تذكرة مفتوحة (تحت الإجراء)"
+if 'show_alert' not in st.state: st.state.show_alert = False
+
+with col1:
+    st.metric(label="📊 نسبة امتثال الموقع للسلامة", value=f"{st.state.compliance}%", delta="+5% منذ الأسبوع الماضي" if st.state.compliance > 74 else "⚠️ حرج وتحت حد الأمان")
+with col2:
+    st.metric(label="🚨 غرامات تقديرية تم تفاديها", value="14,500 ريال", delta="بناءً على تسعيرة إجادة")
+with col3:
+    st.metric(label="🎫 تذاكر المخالفات النشطة اليوم", value=str(st.state.tickets_count))
+with col4:
+    st.metric(label="⏱️ متوسط وقت إغلاق البلاغ", value="12 دقيقة", delta="أسرع من الرقابة البشرية")
+
+st.write("---")
+
+# قسم الرصد الحي وبث الفيديو
+col_video, col_insights = st.columns([2, 1])
+
+with col_video:
+    st.subheader(f"📺 البث الحي: {camera_source}")
+    
+    # صندوق محاكاة البث
+    video_placeholder = st.empty()
+    video_placeholder.info("النظام جاهز لبدء استقبال البث وتشغيل الـ AI Agent. اضغط على الزر أدناه لبدء الرصد الميداني.")
+    
+    start_btn = st.button("🚀 ابدأ الرصد الذكي وتحليل الموقع الآن")
+
+    if start_btn:
+        st.state.show_alert = True
+        with st.spinner("جاري الاتصال بالبث وتشغيل الـ AI Agent ومعالجة الإطارات..."):
+            time.sleep(2) # محاكاة الربط
+        
+        # محاكاة لقطة الرصد (إطار فيديو ثابت يوضح الفكرة)
+        video_placeholder.image("https://images.unsplash.com/photo-1541888946425-d81bb19240f5?q=80&w=600&auto=format&fit=crop", 
+                                caption="تحليل البث اللحظي: الـ AI يقوم بمسح العمال ومطابقة الـ PPE", use_container_width=True)
+        
+        st.error("⚠️ [إنذار فوري] - رصد مخالفة سلامة جسيمة في ساحة العمل قطاع ج-3")
+        st.toast("📱 تم إرسال إشعار تنبيهي فوري لـ هاتف المشرف ومدير الموقع عبر الواتساب!", icon="⚠️")
+
+with col_insights:
+    st.subheader("💡 التوصيات الاستباقية (AI Generative)")
+    st.info("""
+    **تحليل الأنماط والتنبؤ بالمخاطر (الأسبوع القادم):**
+    * **الموقع الأعلى خطورة:** موقع أعمال الحدادة والسقالات.
+    * **الوقت الحرج المتوقع:** من الساعة 12:30 م إلى 2:00 م (وقت اشتداد الحرارة).
+    
+    **📝 توصية مستشار السلامة الافتراضي (LLM):**
+    "نوصي بإلزام مقاول الباطن بتوجيه جولة تفتيشية مفاجئة الساعة 1:00 م، حيث تشير البيانات التاريخية إلى تهاون العمال في هذا الوقت بنسبة 85%. الإجراء يحميكم من غرامة متوقعة لشركة إجادة بقيمة 6000 ريال هذا الأسبوع."
+    """)
+
+st.write("---")
+
+# قسم إدارة التذاكر وقاعدة البيانات
+st.subheader("🎫 نظام إدارة البلاغات والتذاكر المؤتمت")
+
+# إنشاء جدول بيانات تفاعلي للديمو
+data = {
+    "رقم التذكرة": ["TK-9821", "TK-9822", "TK-9823"],
+    "نوع المخالفة": ["عدم ارتداء خوذة السلامة", "انسداد مخرج الطوارئ الجنوبي", "عدم ارتداء سترة عاكسة"],
+    "المنطقة / الموقع": ["القطاع الشرقي", "منطقة التخزين", "ساحة الرافعة الرئيسية"],
+    "الوقت والتاريخ": ["اليوم - 02:45 م", "اليوم - 01:15 م", "اليوم - 11:00 ص"],
+    "الغرامة المحتملة (إجادة)": ["3,000 ريال", "5,000 ريال", "3,000 ريال"],
+    "الحالة": [st.state.ticket_status, "🟢 تم التصحيح والإغلاق", "🟢 تم التصحيح والإغلاق"]
+}
+df = pd.DataFrame(data)
+st.dataframe(df, use_container_width=True)
+
+# زر محاكاة الحل وتحديث المؤشرات لإبهار العميل
+if st.state.show_alert and st.state.compliance == 74:
+    st.write("### ⚙️ إجراءات المدير الإدارية (ميدانياً):")
+    resolve_btn = st.button("✅ ضغطة المشرف: تأكيد تصحيح وضع العامل وإغلاق التذكرة")
+    if resolve_btn:
+        st.state.compliance = 96
+        st.state.tickets_count = 2
+        st.state.ticket_status = "🟢 تم التصحيح والإغلاق"
+        st.success("تم استقبال صورة التصحيح، وتحديث مؤشر الامتثال، وإغلاق التذكرة تلقائياً بنجاح!")
+        st.rerun()
+
+# زر تحميل التقارير
+st.write("---")
+st.download_button(label="📥 تحميل تقرير الامتثال والمخاطر الختامي (PDF)", data="Mock PDF Content", file_name="HSE_Report.pdf", mime="application/pdf")

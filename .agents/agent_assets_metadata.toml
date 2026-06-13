@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "0HLpKoWiL7ZKPXMAvAwyM"
+uri = "file://artifacts/hse-dashboard/public/camera-feed.png"
+type = "image"
+title = "Dramatic construction site overhead"

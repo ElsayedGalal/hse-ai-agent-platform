@@ -3,13 +3,21 @@ info:
   # Do not change the title, if the title changes, the import paths will be broken
   title: Api
   version: 0.1.0
-  description: API specification
+  description: HSE AI Agent - Construction Site Safety Monitoring API
 servers:
   - url: /api
     description: Base API path
 tags:
   - name: health
     description: Health operations
+  - name: sites
+    description: Construction site management
+  - name: violations
+    description: Safety violation tickets
+  - name: stats
+    description: Dashboard KPIs and statistics
+  - name: recommendations
+    description: AI-generated safety recommendations
 paths:
   /healthz:
     get:
@@ -24,6 +32,228 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/HealthStatus"
+
+  /sites:
+    get:
+      operationId: listSites
+      tags: [sites]
+      summary: List all construction sites
+      responses:
+        "200":
+          description: List of sites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Site"
+
+  /sites/{id}:
+    get:
+      operationId: getSite
+      tags: [sites]
+      summary: Get a single construction site
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Site details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Site"
+        "404":
+          description: Not found
+
+  /violations:
+    get:
+      operationId: listViolations
+      tags: [violations]
+      summary: List safety violation tickets
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: integer
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [open, resolved, all]
+      responses:
+        "200":
+          description: List of violations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Violation"
+    post:
+      operationId: createViolation
+      tags: [violations]
+      summary: Create a new violation ticket
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViolationInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Violation"
+
+  /violations/{id}:
+    get:
+      operationId: getViolation
+      tags: [violations]
+      summary: Get a single violation ticket
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Violation details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Violation"
+        "404":
+          description: Not found
+    patch:
+      operationId: updateViolation
+      tags: [violations]
+      summary: Update a violation ticket (e.g. resolve it)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ViolationUpdate"
+      responses:
+        "200":
+          description: Updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Violation"
+        "404":
+          description: Not found
+
+  /stats/dashboard:
+    get:
+      operationId: getDashboardStats
+      tags: [stats]
+      summary: Get KPI dashboard statistics for a site
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Dashboard KPIs
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DashboardStats"
+
+  /stats/compliance-history:
+    get:
+      operationId: getComplianceHistory
+      tags: [stats]
+      summary: Get weekly compliance rate history for a site
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Compliance history data points
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/CompliancePoint"
+
+  /stats/violation-breakdown:
+    get:
+      operationId: getViolationBreakdown
+      tags: [stats]
+      summary: Get violation counts grouped by type
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Violation breakdown by type
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/ViolationBreakdownItem"
+
+  /recommendations:
+    get:
+      operationId: listRecommendations
+      tags: [recommendations]
+      summary: Get AI-generated safety recommendations for a site
+      parameters:
+        - name: siteId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Safety recommendations
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Recommendation"
+
+  /monitoring/start:
+    post:
+      operationId: startMonitoring
+      tags: [sites]
+      summary: Start AI monitoring session for a site
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MonitoringSessionInput"
+      responses:
+        "200":
+          description: Monitoring session started with detected violations
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MonitoringResult"
+
 components:
   schemas:
     HealthStatus:
@@ -34,3 +264,178 @@ components:
       required:
         - status
 
+    Site:
+      type: object
+      required: [id, nameAr, location, complianceRate, status, cameraCount]
+      properties:
+        id:
+          type: integer
+        nameAr:
+          type: string
+          description: Arabic site name
+        nameEn:
+          type: string
+        location:
+          type: string
+        complianceRate:
+          type: number
+          description: Compliance percentage 0-100
+        status:
+          type: string
+          enum: [active, paused, offline]
+        cameraCount:
+          type: integer
+        lastInspection:
+          type: ["string", "null"]
+
+    Violation:
+      type: object
+      required: [id, siteId, ticketNumber, violationType, zone, detectedAt, potentialFineAmount, status]
+      properties:
+        id:
+          type: integer
+        siteId:
+          type: integer
+        ticketNumber:
+          type: string
+        violationType:
+          type: string
+          enum: [no_helmet, no_vest, smoking_danger_zone, blocked_exit, no_harness, other]
+        violationTypeAr:
+          type: string
+        zone:
+          type: string
+        detectedAt:
+          type: string
+        resolvedAt:
+          type: ["string", "null"]
+        potentialFineAmount:
+          type: number
+        status:
+          type: string
+          enum: [open, resolved]
+        imageUrl:
+          type: ["string", "null"]
+        notes:
+          type: ["string", "null"]
+
+    ViolationInput:
+      type: object
+      required: [siteId, violationType, zone, potentialFineAmount]
+      properties:
+        siteId:
+          type: integer
+        violationType:
+          type: string
+          enum: [no_helmet, no_vest, smoking_danger_zone, blocked_exit, no_harness, other]
+        zone:
+          type: string
+        potentialFineAmount:
+          type: number
+        notes:
+          type: string
+
+    ViolationUpdate:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [open, resolved]
+        notes:
+          type: string
+        resolvedAt:
+          type: string
+
+    DashboardStats:
+      type: object
+      required: [complianceRate, complianceWeeklyDelta, totalFinesAvoided, activeTickets, avgResolutionMinutes, monitoredWorkers, activeAlerts]
+      properties:
+        complianceRate:
+          type: number
+        complianceWeeklyDelta:
+          type: number
+        totalFinesAvoided:
+          type: number
+        activeTickets:
+          type: integer
+        avgResolutionMinutes:
+          type: number
+        monitoredWorkers:
+          type: integer
+        activeAlerts:
+          type: integer
+
+    CompliancePoint:
+      type: object
+      required: [week, rate]
+      properties:
+        week:
+          type: string
+        rate:
+          type: number
+
+    ViolationBreakdownItem:
+      type: object
+      required: [type, typeAr, count, percentage]
+      properties:
+        type:
+          type: string
+        typeAr:
+          type: string
+        count:
+          type: integer
+        percentage:
+          type: number
+
+    Recommendation:
+      type: object
+      required: [id, siteId, priority, titleAr, descriptionAr, expectedSaving, timeWindow]
+      properties:
+        id:
+          type: integer
+        siteId:
+          type: integer
+        priority:
+          type: string
+          enum: [high, medium, low]
+        titleAr:
+          type: string
+        descriptionAr:
+          type: string
+        expectedSaving:
+          type: number
+        timeWindow:
+          type: string
+
+    MonitoringSessionInput:
+      type: object
+      required: [siteId, source]
+      properties:
+        siteId:
+          type: integer
+        source:
+          type: string
+          enum: [cctv, mobile]
+        detectionCategories:
+          type: array
+          items:
+            type: string
+
+    MonitoringResult:
+      type: object
+      required: [sessionId, siteId, detectedViolations, newComplianceRate, alertSent]
+      properties:
+        sessionId:
+          type: string
+        siteId:
+          type: integer
+        detectedViolations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Violation"
+        newComplianceRate:
+          type: number
+        alertSent:
+          type: boolean
+        alertMessage:
+          type: ["string", "null"]
